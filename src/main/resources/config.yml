@@ -1,0 +1,6 @@
+Math:
+  enabled: true
+  message: "<yellow>First to answer gets a reward! <white>{equation}</white>"
+  maxNumber: 100
+  minNumber: 1
+  operators: [*, +, -, /]

@@ -4,3 +4,7 @@ version: '${version}'
 main: mopo.mopoChatGames.MopoChatGames
 api-version: '1.21.11'
 load: POSTWORLD
+commands:
+  runchatgame:
+    description: Starts a chat game and broadcasts it
+    usage: /runchatgame <game>
