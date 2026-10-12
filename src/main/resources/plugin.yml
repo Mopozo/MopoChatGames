@@ -1,0 +1,6 @@
+name: MopoChatGames
+version: '${version}'
+
+main: mopo.mopoChatGames.MopoChatGames
+api-version: '1.21.11'
+load: POSTWORLD
