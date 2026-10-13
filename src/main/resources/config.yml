@@ -4,3 +4,12 @@ Math:
   maxNumber: 100
   minNumber: 1
   operators: [*, +, -, /]
+RepeatWord:
+  enabled: true
+  message: "<yellow>First to type <cyan>{word} <yellow>gets a reward!"
+  casesensative: false
+  wordlist:
+    - Creeper
+    - Enderman
+    - Minecart
+    - Steve

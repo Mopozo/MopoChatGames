@@ -10,7 +10,7 @@ public final class MopoChatGames extends JavaPlugin {
 
     private static MopoChatGames INSTANCE;
     private BufferManager bufferManager;
-    private boolean activeGame;
+    private String activeGame;
     private String answer;
 
 
@@ -18,7 +18,7 @@ public final class MopoChatGames extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
         bufferManager = new BufferManager();
-        activeGame = false;
+        activeGame = null;
         answer = null;
 
         PluginManager pluginManager = getServer().getPluginManager();
@@ -44,11 +44,11 @@ public final class MopoChatGames extends JavaPlugin {
         return INSTANCE;
     }
 
-    public boolean isActiveGame() {
+    public String getActiveGame() {
         return activeGame;
     }
 
-    public void setActiveGame(boolean activeGame) {
+    public void setActiveGame(String activeGame) {
         this.activeGame = activeGame;
     }
 

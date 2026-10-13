@@ -20,4 +20,7 @@ public class ConfigData {
     public static int getMathMin(){return  config.getInt("Math.minNumber");}
     public static List<Character> getMathOperators() {return config.getCharacterList("Math.operators");}
 
+    public static String getRepeatWordMessage() {return config.getString("RepeatWord.message");}
+    public static List<String> getRepeatWordList() {return config.getStringList("RepeatWord.wordlist");}
+
 }

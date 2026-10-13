@@ -7,6 +7,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -24,12 +25,14 @@ public class RunChatGameCMD implements CommandExecutor {
                 return true;
             }
 
-            MopoChatGames.getINSTANCE().setActiveGame(true);
+            MopoChatGames instance = MopoChatGames.getINSTANCE();
+            instance.setActiveGame(true);
 
             String message;
+            final FileConfiguration config = instance.getConfig();
             switch (args[0].toLowerCase()) {
                 case "math" -> {
-                    if (!MopoChatGames.getINSTANCE().getConfig().getBoolean("Math.enabled")) {
+                    if (!config.getBoolean("Math.enabled")) {
                         player.sendMessage("This chat game is not enabled, please enable in the config!");
                     }
                     List<Character> operators = ConfigData.getMathOperators();
@@ -51,7 +54,25 @@ public class RunChatGameCMD implements CommandExecutor {
                     String equation = a + " " + operator + " " + b;
                     message = ConfigData.getMathMessage().replace("{equation}", equation);
                     int answer = a + operator + b;
-                    MopoChatGames.getINSTANCE().setAnswer(String.valueOf(answer));
+                    instance.setActiveGame("math");
+                    instance.setAnswer(String.valueOf(answer));
+                }
+                case "repeatword" -> {
+                    if (!config.getBoolean("RepeatWord.enabled")) {
+                        player.sendMessage("This chat game is disabled, please enable in config!");
+                    }
+
+                    List<String> wordlist = ConfigData.getRepeatWordList();
+                    if (wordlist.isEmpty()) {
+                        player.sendMessage("No words in config");
+                    }
+                    RandomGenerator random = RandomGenerator.getDefault();
+                    int randomIndex = random.nextInt(0, wordlist.size() - 1);
+                    String chosenWord = wordlist.get(randomIndex);
+
+                    ConfigData.getMathMessage().replace("{word}", chosenWord);
+                    instance.setActiveGame("repeatword");
+                    instance.setAnswer(chosenWord);
                 }
                 default -> {
                     player.sendMessage("Unknown game: " + args[0]);

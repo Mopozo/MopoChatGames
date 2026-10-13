@@ -14,13 +14,13 @@ public class chatListener implements Listener {
     @EventHandler
     //Running on the wrong event not async chat event
     public void chatEvent(AsyncChatEvent event ) {
-        if (MopoChatGames.getINSTANCE().isActiveGame()) {
+        if (!MopoChatGames.getINSTANCE().getActiveGame().equals("null")) {
             String answer = MopoChatGames.getINSTANCE().getAnswer();
             boolean contains = event.message().contains(MiniMessage.miniMessage().deserialize(answer));
             if (contains) {
                 Player player = event.getPlayer();
                 player.getServer().broadcast(MiniMessage.miniMessage().deserialize(player + "got the correct answer of" + answer));
-                MopoChatGames.getINSTANCE().setActiveGame(false);
+                MopoChatGames.getINSTANCE().setActiveGame(null);
                 MopoChatGames.getINSTANCE().setAnswer(null);
                 player.getInventory().addItem(new ItemStack(Material.ACACIA_BOAT));
                 //change reward out of testing
