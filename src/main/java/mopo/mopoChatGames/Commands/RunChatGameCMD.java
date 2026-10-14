@@ -26,36 +26,35 @@ public class RunChatGameCMD implements CommandExecutor {
             }
 
             MopoChatGames instance = MopoChatGames.getINSTANCE();
-            instance.setActiveGame(true);
-
-            String message;
             final FileConfiguration config = instance.getConfig();
             switch (args[0].toLowerCase()) {
                 case "math" -> {
-                    if (!config.getBoolean("Math.enabled")) {
+                    if (config.getBoolean("Math.enabled")) {
+                        List<Character> operators = ConfigData.getMathOperators();
+                        if (operators.isEmpty()) {
+                            sender.sendMessage("No math operators are configured.");
+                            return true;
+                        }
+
+                        RandomGenerator random = RandomGenerator.getDefault();
+                        int a = random.nextInt(ConfigData.getMathMin(), ConfigData.getMathMax() + 1);
+                        int b = random.nextInt(ConfigData.getMathMin(), ConfigData.getMathMax() + 1);
+                        char operator = operators.get(random.nextInt(operators.size()));
+                        while (operator == '/') {
+                            int remainder = a / b;
+                            if (remainder != 0) {
+                                b++;
+                            }
+                        }
+                        String equation = a + " " + operator + " " + b;
+                        String message = ConfigData.getMathMessage().replace("{equation}", equation);
+                        instance.getConfig().set("Math.message", message);
+                        int answer = a + operator + b;
+                        instance.setActiveGame("Math");
+                        instance.setAnswer(String.valueOf(answer));
+                    } else {
                         player.sendMessage("This chat game is not enabled, please enable in the config!");
                     }
-                    List<Character> operators = ConfigData.getMathOperators();
-                    if (operators.isEmpty()) {
-                        sender.sendMessage("No math operators are configured.");
-                        return true;
-                    }
-
-                    RandomGenerator random = RandomGenerator.getDefault();
-                    int a = random.nextInt(ConfigData.getMathMin(), ConfigData.getMathMax() + 1);
-                    int b = random.nextInt(ConfigData.getMathMin(), ConfigData.getMathMax() + 1);
-                    char operator = operators.get(random.nextInt(operators.size()));
-                    while (operator == '/') {
-                        int remainder = a / b;
-                        if (remainder != 0) {
-                            b++;
-                        }
-                    }
-                    String equation = a + " " + operator + " " + b;
-                    message = ConfigData.getMathMessage().replace("{equation}", equation);
-                    int answer = a + operator + b;
-                    instance.setActiveGame("math");
-                    instance.setAnswer(String.valueOf(answer));
                 }
                 case "repeatword" -> {
                     if (!config.getBoolean("RepeatWord.enabled")) {
@@ -70,8 +69,9 @@ public class RunChatGameCMD implements CommandExecutor {
                     int randomIndex = random.nextInt(0, wordlist.size() - 1);
                     String chosenWord = wordlist.get(randomIndex);
 
-                    ConfigData.getMathMessage().replace("{word}", chosenWord);
-                    instance.setActiveGame("repeatword");
+                    String message = ConfigData.getMathMessage().replace("{word}", chosenWord);
+                    instance.getConfig().set("RepeatWord.message", message);
+                    instance.setActiveGame("RepeatWord");
                     instance.setAnswer(chosenWord);
                 }
                 default -> {
@@ -79,10 +79,13 @@ public class RunChatGameCMD implements CommandExecutor {
                     return true;
                 }
             }
-
+            String activeGame = MopoChatGames.getINSTANCE().getActiveGame();
+            String message = instance.getConfig().getString(activeGame + ".message");
             MiniMessage miniMessage = MiniMessage.miniMessage();
-            Component broadcast = miniMessage.deserialize(message);
-            sender.getServer().broadcast(broadcast);
+            if (message != null) {
+                Component broadcast = miniMessage.deserialize(message);
+                sender.getServer().broadcast(broadcast);
+            }
             return true;
         } else {
             sender.sendMessage("only players can run this command.");

@@ -3,7 +3,7 @@ Math:
   message: "<yellow>First to answer gets a reward! <white>{equation}</white>"
   maxNumber: 100
   minNumber: 1
-  operators: [*, +, -, /]
+  operators: ['*', '+', '-', '/']
 RepeatWord:
   enabled: true
   message: "<yellow>First to type <cyan>{word} <yellow>gets a reward!"
