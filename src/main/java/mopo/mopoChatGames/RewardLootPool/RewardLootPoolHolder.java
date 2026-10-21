@@ -1,4 +1,4 @@
-package mopo.mopoChatGames.Inventories;
+package mopo.mopoChatGames.RewardLootPool;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;

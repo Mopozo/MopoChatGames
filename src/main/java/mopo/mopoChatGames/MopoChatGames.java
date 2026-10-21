@@ -4,6 +4,7 @@ import mopo.mopoChatGames.Commands.EndChatGameCMD;
 import mopo.mopoChatGames.Commands.OpenRewardLootPoolCMD;
 import mopo.mopoChatGames.Commands.RunChatGameCMD;
 import mopo.mopoChatGames.Listeners.chatListener;
+import mopo.mopoChatGames.RewardLootPool.RewardLootPool;
 import mopo.mopoLib.inventories.BufferManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -16,6 +17,7 @@ public final class MopoChatGames extends JavaPlugin {
     private BufferManager bufferManager;
     private String activeGame;
     private String answer;
+    private RewardLootPool rewardLootPool;
 
 
     @Override
@@ -24,6 +26,7 @@ public final class MopoChatGames extends JavaPlugin {
         bufferManager = new BufferManager();
         activeGame = null;
         answer = null;
+        rewardLootPool = new RewardLootPool();
 
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new chatListener(), this);
@@ -108,6 +111,10 @@ public final class MopoChatGames extends JavaPlugin {
         getINSTANCE().getServer().getScheduler().runTaskLater(getINSTANCE(), bukkitTask -> {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "endchatgame");
         }, ticks);
+    }
+
+    public RewardLootPool getRewardLootPool() {
+        return rewardLootPool;
     }
 }
 
