@@ -8,3 +8,8 @@ commands:
   runchatgame:
     description: Starts a chat game and broadcasts it
     usage: /runchatgame <game>
+  endchatgame:
+    description: Ends current chat game
+    usage: /endchatgame
+  OpenRewardLootPool:
+    usage: /openrewardlootpool

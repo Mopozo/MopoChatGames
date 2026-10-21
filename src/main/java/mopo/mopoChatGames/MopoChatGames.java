@@ -1,8 +1,12 @@
 package mopo.mopoChatGames;
 
+import mopo.mopoChatGames.Commands.EndChatGameCMD;
+import mopo.mopoChatGames.Commands.OpenRewardLootPoolCMD;
 import mopo.mopoChatGames.Commands.RunChatGameCMD;
 import mopo.mopoChatGames.Listeners.chatListener;
 import mopo.mopoLib.inventories.BufferManager;
+import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,7 +30,13 @@ public final class MopoChatGames extends JavaPlugin {
 
         saveDefaultConfig();
 
-        getCommand("runchatgame").setExecutor(new RunChatGameCMD());
+        PluginCommand runChatGameCommand = getCommand("runchatgame");
+        if (runChatGameCommand == null) {
+            throw new IllegalStateException("Command 'runchatgame' is missing from plugin.yml");
+        }
+        getCommand("endchatgame").setExecutor(new EndChatGameCMD());
+        getCommand("openrewardlootpool").setExecutor(new OpenRewardLootPoolCMD());
+        runChatGameCommand.setExecutor(new RunChatGameCMD());
         // Plugin startup logic
     }
 
@@ -44,19 +54,61 @@ public final class MopoChatGames extends JavaPlugin {
         return INSTANCE;
     }
 
-    public String getActiveGame() {
+    public synchronized String getActiveGame() {
         return activeGame;
     }
 
-    public void setActiveGame(String activeGame) {
+    public synchronized void setActiveGame(String activeGame) {
         this.activeGame = activeGame;
     }
 
-    public String getAnswer() {
+    public synchronized String getAnswer() {
         return answer;
     }
 
-    public void setAnswer(String answer) {
+    public synchronized void setAnswer(String answer) {
         this.answer = answer;
     }
+
+    public synchronized void startGame(String activeGame, String answer) {
+        this.activeGame = activeGame;
+        this.answer = answer;
+        startGameTimer(getConfig().getInt("ChatGameTimeSeconds"));
+    }
+
+    public synchronized void startGame(String activeGame, String answer, int length) {
+        this.activeGame = activeGame;
+        this.answer = answer;
+        startGameTimer(length);
+    }
+
+    public synchronized String completeGameIfAnswer(String submittedAnswer, boolean caseSensitive) {
+        if (activeGame == null || answer == null) {
+            return null;
+        }
+
+        boolean correct;
+        if (caseSensitive) {
+            correct = answer.equals(submittedAnswer);
+        } else {
+            correct = answer.equalsIgnoreCase(submittedAnswer);
+        }
+        if (!correct) {
+            return null;
+        }
+
+        String correctAnswer = answer;
+        activeGame = null;
+        answer = null;
+        return correctAnswer;
+    }
+
+    public void startGameTimer(int seconds) {
+        long ticks = seconds * 20L;
+        getINSTANCE().getServer().getScheduler().runTaskLater(getINSTANCE(), bukkitTask -> {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "endchatgame");
+        }, ticks);
+    }
 }
+
+

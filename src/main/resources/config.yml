@@ -1,3 +1,4 @@
+ChatGameTimeSeconds: 60
 Math:
   enabled: true
   message: "<yellow>First to answer gets a reward! <white>{equation}</white>"
@@ -6,8 +7,8 @@ Math:
   operators: ['*', '+', '-', '/']
 RepeatWord:
   enabled: true
-  message: "<yellow>First to type <cyan>{word} <yellow>gets a reward!"
-  casesensative: false
+  message: "<yellow>First to type <aqua>{word} <yellow>gets a reward!"
+  caseSensitive: false
   wordlist:
     - Creeper
     - Enderman
