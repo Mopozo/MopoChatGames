@@ -18,6 +18,7 @@ import java.util.random.RandomGenerator;
 public class RunChatGameCMD implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
+        boolean isDivide = false;
 
         if (!(sender instanceof Player player)) {
             sender.sendMessage("Only players can run this command.");
@@ -64,10 +65,16 @@ public class RunChatGameCMD implements CommandExecutor {
                 int a = random.nextInt(min, max + 1);
                 int b = random.nextInt(min, max + 1);
                 char operator = operators.get(random.nextInt(operators.size()));
-                while (operator == '/') {
+                while (isDivide) {
                     int remainder = a / b;
                     if (remainder != 0) {
-                        b++;
+                        if (b > 20) {
+                            b--;
+                        } else {
+                            a++;
+                        }
+                    } else {
+                        isDivide = false;
                     }
                 }
 

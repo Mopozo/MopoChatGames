@@ -3,8 +3,10 @@ package mopo.mopoChatGames;
 import mopo.mopoChatGames.Commands.EndChatGameCMD;
 import mopo.mopoChatGames.Commands.OpenRewardLootPoolCMD;
 import mopo.mopoChatGames.Commands.RunChatGameCMD;
+import mopo.mopoChatGames.Listeners.RewardLootPoolListener;
 import mopo.mopoChatGames.Listeners.chatListener;
 import mopo.mopoChatGames.RewardLootPool.RewardLootPool;
+import mopo.mopoLib.MopoLib;
 import mopo.mopoLib.inventories.BufferManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -23,20 +25,20 @@ public final class MopoChatGames extends JavaPlugin {
     @Override
     public void onEnable() {
         INSTANCE = this;
-        bufferManager = new BufferManager();
+        bufferManager = MopoLib.INSTANCE.getBufferManager();
         activeGame = null;
         answer = null;
         rewardLootPool = new RewardLootPool();
+        rewardLootPool.getLootPool();
 
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new chatListener(), this);
+        pluginManager.registerEvents(new RewardLootPoolListener(), this);
 
         saveDefaultConfig();
 
         PluginCommand runChatGameCommand = getCommand("runchatgame");
-        if (runChatGameCommand == null) {
-            throw new IllegalStateException("Command 'runchatgame' is missing from plugin.yml");
-        }
+
         getCommand("endchatgame").setExecutor(new EndChatGameCMD());
         getCommand("openrewardlootpool").setExecutor(new OpenRewardLootPoolCMD());
         runChatGameCommand.setExecutor(new RunChatGameCMD());
@@ -117,5 +119,4 @@ public final class MopoChatGames extends JavaPlugin {
         return rewardLootPool;
     }
 }
-
 

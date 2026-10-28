@@ -14,27 +14,31 @@ import java.util.random.RandomGenerator;
 
 public class RewardLootPool {
     private static final String BUFFER_NAME = "rewardlootpool";
-    private static final String WEIGHT_KEY = "reward_weight";
+    private static final String RAW_WEIGHT_KEY = "raw_weight_key";
     private static final double DEFAULT_WEIGHT = 1.0;
 
     private final BufferManager bufferManager = MopoChatGames.getINSTANCE().getBufferManager();
     private List<Map.Entry<ItemStack, Double>> lootPool = new ArrayList<>();
 
-    public void addItemToLootPool(ItemStack item, double weight) {
+    public void addItemToLootPool(ItemStack item, double rawWeight) {
         Objects.requireNonNull(item, "item");
-        if (!Double.isFinite(weight) || weight <= 0.0) {
+        if (!isValidWeight(rawWeight)) {
             throw new IllegalArgumentException("Reward weight must be a positive, finite number");
         }
 
         bufferManager.createOrGetBuffer(BUFFER_NAME);
         ItemStack weightedItem = item.clone();
         NBT.modify(weightedItem, nbt -> {
-            nbt.setDouble(WEIGHT_KEY, weight);
+            nbt.setDouble(RAW_WEIGHT_KEY, rawWeight);
         });
 
         if (bufferManager.addItemToBuffer(BUFFER_NAME, weightedItem) >= 0) {
-            lootPool.add(Map.entry(weightedItem, weight));
+            lootPool.add(Map.entry(weightedItem, rawWeight));
         }
+    }
+
+    public void addItemToLootPool(ItemStack item) {
+        addItemToLootPool(item, DEFAULT_WEIGHT);
     }
 
     public void setLootPool(Inventory inventory) {
@@ -49,17 +53,15 @@ public class RewardLootPool {
             }
 
             ItemStack weightedItem = item.clone();
-            double weight = NBT.get(weightedItem, nbt -> nbt.hasTag(WEIGHT_KEY)
-                    ? nbt.getDouble(WEIGHT_KEY)
-                    : DEFAULT_WEIGHT);
-            if (!Double.isFinite(weight) || weight <= 0.0) {
+            double rawWeight = readRawWeight(weightedItem);
+            if (!isValidWeight(rawWeight)) {
                 throw new IllegalArgumentException("Reward weight must be a positive, finite number");
             }
             NBT.modify(weightedItem, nbt -> {
-                nbt.setDouble(WEIGHT_KEY, weight);
+                nbt.setDouble(RAW_WEIGHT_KEY, rawWeight);
             });
             inventory.setItem(slot, weightedItem);
-            updatedLootPool.add(Map.entry(weightedItem, weight));
+            updatedLootPool.add(Map.entry(weightedItem, rawWeight));
         }
 
         bufferManager.saveInventoryToBuffer(BUFFER_NAME, inventory);
@@ -67,7 +69,25 @@ public class RewardLootPool {
     }
 
     public List<Map.Entry<ItemStack, Double>> getLootPool() {
-        return lootPool.isEmpty() ? null : lootPool;
+        if (lootPool.isEmpty()) {
+            List<ItemStack> bufferedItems = bufferManager.getBufferAsList(BUFFER_NAME);
+            if (bufferedItems != null) {
+                for (ItemStack itemStack : bufferedItems) {
+                    if (itemStack == null || itemStack.getType().isAir()) {
+                        continue;
+                    }
+                    double rawWeight = readRawWeight(itemStack);
+                    if (isValidWeight(rawWeight)) {
+                        lootPool.add(Map.entry(itemStack, rawWeight));
+                    }
+                }
+            }
+        }
+        List<Map.Entry<ItemStack, Double>> newLootPool = new ArrayList<>();
+        for (Map.Entry<ItemStack, Double> reward : lootPool) {
+            newLootPool.add(Map.entry(reward.getKey().clone(), reward.getValue()));
+        }
+        return newLootPool;
     }
 
     public void openLootPoolInventory(Player player) {
@@ -82,33 +102,49 @@ public class RewardLootPool {
     }
 
     public ItemStack chooseRandomReward() {
-        double randomNumber = RandomGenerator.getDefault().nextDouble(0, 100);
-        for (int i = 0; i <= lootPool.size() ; i++) {
-            Map.Entry<ItemStack, Double> entry = lootPool.get(i);
-            Double entryValue = entry.getValue();
-
+        if (lootPool.isEmpty()) {
+            return null;
         }
-        return  null;
+
+        double randomNumber = RandomGenerator.getDefault().nextDouble(0, getTotalWeight());
+        double cumulative = 0;
+        for (Map.Entry<ItemStack, Double> entry : lootPool) {
+            cumulative += entry.getValue();
+            if (randomNumber < cumulative) {
+                return entry.getKey().clone();
+            }
+        }
+        // Floating-point rounding can leave the roll just past the last entry
+        return lootPool.get(lootPool.size() - 1).getKey().clone();
     }
 
-    public void updatePercentages() {
-        if (lootPool.isEmpty()) {
-            return;
-        }
-
+    public double getTotalWeight() {
         double totalWeight = 0;
         for (Map.Entry<ItemStack, Double> reward : lootPool) {
             totalWeight += reward.getValue();
         }
+        return totalWeight;
+    }
 
-        List<Map.Entry<ItemStack, Double>> updatedLootPool = new ArrayList<>();
-        for (Map.Entry<ItemStack, Double> reward : lootPool) {
-            double percentage = reward.getValue() / totalWeight * 100.0;
-            NBT.modify(reward.getKey(), nbt -> {
-                nbt.setDouble(WEIGHT_KEY, percentage);
-            });
-            updatedLootPool.add(Map.entry(reward.getKey(), percentage));
+    public double getPercentage(Map.Entry<ItemStack, Double> reward) {
+        double totalWeight = getTotalWeight();
+        if (totalWeight <= 0.0) {
+            return 0.0;
         }
-        lootPool = updatedLootPool;
+        return reward.getValue() / totalWeight * 100.0;
+    }
+
+    private double readRawWeight(ItemStack item) {
+        return NBT.get(item, nbt -> {
+            if (nbt.hasTag(RAW_WEIGHT_KEY)) {
+                return nbt.getDouble(RAW_WEIGHT_KEY);
+            } else {
+                return DEFAULT_WEIGHT;
+            }
+        });
+    }
+
+    private boolean isValidWeight(double weight) {
+        return Double.isFinite(weight) && weight > 0.0;
     }
 }
