@@ -17,6 +17,6 @@ public class OpenRewardLootPoolCMD implements CommandExecutor {
             RewardLootPool rewardLootPool = instance.getRewardLootPool();
             rewardLootPool.openLootPoolInventory(player);
         }
-        return false;
+        return true;
     }
 }
